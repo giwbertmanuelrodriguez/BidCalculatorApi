@@ -1,12 +1,13 @@
 using BidCalculationApi.Models;
 using BidCalculationApi.Services;
+using BidCalculatorApi.Interfaces;
 using Xunit;
 
 namespace BidCalculatorApiTest
 {
     public class BidCalculationServiceTests
     {
-        private readonly BidCalculationService _service;
+        private readonly IBidCalculationService _service;
 
         public BidCalculationServiceTests()
         {
