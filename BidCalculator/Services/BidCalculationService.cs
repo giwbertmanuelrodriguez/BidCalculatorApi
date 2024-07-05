@@ -5,23 +5,14 @@ namespace BidCalculationApi.Services
 {
     public class BidCalculationService : IBidCalculationService
     {
-        private const decimal LuxuryBasicFeeRate = 0.10m;
-        private const decimal CommonBasicFeeRate = 0.10m;
-        private const decimal LuxurySpecialFeeRate = 0.04m;
-        private const decimal CommonSpecialFeeRate = 0.02m;
-        private const decimal LuxuryBasicFeeMin = 25m;
-        private const decimal CommonBasicFeeMin = 10m;
-        private const decimal LuxuryBasicFeeMax = 200m;
-        private const decimal CommonBasicFeeMax = 50m;
-        private const decimal StorageFee = 100m;
-
         public BidCalculationResponse CalculateBid(BidCalculationRequest request)
         {
-            var basicFee = CalculateBasicFee(request.BasePrice, request.VehicleType);
-            var specialFee = CalculateSpecialFee(request.BasePrice, request.VehicleType);
+            var basicFee = CalculateBasicFee(request.BasePrice, request.VehicleType, request);
+            var specialFee = CalculateSpecialFee(request.BasePrice, request.VehicleType, request);
             var associationFee = CalculateAssociationFee(request.BasePrice);
+            var storageFee = request.StorageFee;
 
-            var totalCost = request.BasePrice + basicFee + specialFee + associationFee + StorageFee;
+            var totalCost = request.BasePrice + basicFee + specialFee + associationFee + storageFee;
 
             return new BidCalculationResponse
             {
@@ -29,24 +20,41 @@ namespace BidCalculationApi.Services
                 BasicFee = basicFee,
                 SpecialFee = specialFee,
                 AssociationFee = associationFee,
-                StorageFee = StorageFee,
+                StorageFee = storageFee,
                 TotalCost = totalCost
             };
         }
 
-        private decimal CalculateBasicFee(decimal basePrice, string vehicleType)
+        private decimal CalculateBasicFee(decimal basePrice, VehicleType vehicleType, BidCalculationRequest request)
         {
-            var basicFeeRate = vehicleType.ToLower() == "luxury" ? LuxuryBasicFeeRate : CommonBasicFeeRate;
-            var basicFeeMin = vehicleType.ToLower() == "luxury" ? LuxuryBasicFeeMin : CommonBasicFeeMin;
-            var basicFeeMax = vehicleType.ToLower() == "luxury" ? LuxuryBasicFeeMax : CommonBasicFeeMax;
+            decimal basicFeeRate;
+            decimal basicFeeMin;
+            decimal basicFeeMax;
+
+            switch (vehicleType)
+            {
+                case VehicleType.Luxury:
+                    basicFeeRate = request.LuxuryBasicFeeRate;
+                    basicFeeMin = request.LuxuryBasicFeeMin;
+                    basicFeeMax = request.LuxuryBasicFeeMax;
+                    break;
+                default:
+                    basicFeeRate = request.CommonBasicFeeRate;
+                    basicFeeMin = request.CommonBasicFeeMin;
+                    basicFeeMax = request.CommonBasicFeeMax;
+                    break;
+            }
 
             var basicFee = basePrice * basicFeeRate;
             return Math.Min(Math.Max(basicFee, basicFeeMin), basicFeeMax);
         }
 
-        private decimal CalculateSpecialFee(decimal basePrice, string vehicleType)
+        private decimal CalculateSpecialFee(decimal basePrice, VehicleType vehicleType, BidCalculationRequest request)
         {
-            var specialFeeRate = vehicleType.ToLower() == "luxury" ? LuxurySpecialFeeRate : CommonSpecialFeeRate;
+            var specialFeeRate = vehicleType == VehicleType.Luxury
+                ? request.LuxurySpecialFeeRate
+                : request.CommonSpecialFeeRate;
+
             return basePrice * specialFeeRate;
         }
 
