@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BidCalculationApi.Models;
-using BidCalculationApi.Services;
-using Microsoft.AspNetCore.Cors;
+using BidCalculatorApi.Interfaces;
 
 namespace BidCalculationApi.Controllers
 {
@@ -9,11 +8,11 @@ namespace BidCalculationApi.Controllers
     [Route("api/[controller]")]
     public class BidCalculationController : ControllerBase
     {
-        private readonly BidCalculationService _bidCalculationService;
+        private readonly IBidCalculationService _bidCalculationService;
 
-        public BidCalculationController()
+        public BidCalculationController(IBidCalculationService bidCalculationService)
         {
-            _bidCalculationService = new BidCalculationService();
+            _bidCalculationService = bidCalculationService;
         }
 
         [HttpPost("calculate")]
